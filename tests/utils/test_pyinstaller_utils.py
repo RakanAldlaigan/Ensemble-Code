@@ -68,9 +68,22 @@ def test_pyinstaller_datas():
             ("src/kimi_cli/agents/default/sub.yaml", "kimi_cli/agents/default"),
             ("src/kimi_cli/agents/default/system.md", "kimi_cli/agents/default"),
             ("src/kimi_cli/agents/okabe/agent.yaml", "kimi_cli/agents/okabe"),
+            ("src/kimi_cli/agents/tools/calc/System.md", "kimi_cli/agents/tools/calc"),
             (
-                f"src/kimi_cli/deps/bin/{'rg.exe' if platform.system() == 'Windows' else 'rg'}",
-                "kimi_cli/deps/bin",
+                "src/kimi_cli/agents/tools/coderHigh/System.md",
+                "kimi_cli/agents/tools/coderHigh",
+            ),
+            (
+                "src/kimi_cli/agents/tools/coderLow/System.md",
+                "kimi_cli/agents/tools/coderLow",
+            ),
+            (
+                "src/kimi_cli/agents/tools/coderMed/System.md",
+                "kimi_cli/agents/tools/coderMed",
+            ),
+            (
+                "src/kimi_cli/agents/tools/dataAnalysis/System.md",
+                "kimi_cli/agents/tools/dataAnalysis",
             ),
             ("src/kimi_cli/prompts/compact.md", "kimi_cli/prompts"),
             ("src/kimi_cli/prompts/init.md", "kimi_cli/prompts"),
@@ -109,6 +122,22 @@ def test_pyinstaller_datas():
             (
                 "src/kimi_cli/tools/file/write.md",
                 "kimi_cli/tools/file",
+            ),
+            (
+                "src/kimi_cli/tools/function_calling/execute_calculator.md",
+                "kimi_cli/tools/function_calling",
+            ),
+            (
+                "src/kimi_cli/tools/function_calling/execute_code.md",
+                "kimi_cli/tools/function_calling",
+            ),
+            (
+                "src/kimi_cli/tools/function_calling/execute_pdf_extractions.md",
+                "kimi_cli/tools/function_calling",
+            ),
+            (
+                "src/kimi_cli/tools/function_calling/sleep_tool.md",
+                "kimi_cli/tools/function_calling",
             ),
             ("src/kimi_cli/tools/multiagent/create.md", "kimi_cli/tools/multiagent"),
             ("src/kimi_cli/tools/multiagent/task.md", "kimi_cli/tools/multiagent"),
@@ -150,6 +179,13 @@ def test_pyinstaller_hiddenimports():
             "kimi_cli.tools.file.replace",
             "kimi_cli.tools.file.utils",
             "kimi_cli.tools.file.write",
+            "kimi_cli.tools.function_calling",
+            "kimi_cli.tools.function_calling.constraints",
+            "kimi_cli.tools.function_calling.execute_calculator",
+            "kimi_cli.tools.function_calling.execute_code",
+            "kimi_cli.tools.function_calling.execute_pdf_extractions",
+            "kimi_cli.tools.function_calling.sleep_tool",
+            "kimi_cli.tools.function_calling.toolkit",
             "kimi_cli.tools.multiagent",
             "kimi_cli.tools.multiagent.create",
             "kimi_cli.tools.multiagent.task",

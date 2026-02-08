@@ -1,11 +1,11 @@
 import asyncio
+import time
 from pathlib import Path
 from typing import override
 
 from kosong.tooling import CallableTool2, ToolError, ToolOk, ToolReturnValue
 from pydantic import BaseModel, Field
 
-from kimi_cli.tools.function_calling.tools import sleep_tool
 from kimi_cli.tools.utils import load_desc
 
 
@@ -24,10 +24,15 @@ class SleepTool(CallableTool2[Params]):
     @override
     async def __call__(self, params: Params) -> ToolReturnValue:
         try:
-            result = await asyncio.to_thread(sleep_tool, params.seconds)
+            result = await asyncio.to_thread(_sleep, params.seconds)
             return ToolOk(output=result)
         except Exception as e:
             return ToolError(
                 message=f"Failed to execute sleep request. Error: {e}",
                 brief="Sleep failed",
             )
+
+
+def _sleep(seconds: float) -> str:
+    time.sleep(seconds)
+    return f"slept {seconds}s"
