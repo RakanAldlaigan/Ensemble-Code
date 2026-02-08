@@ -22,11 +22,15 @@ Running the project
 Install dependencies or use github codespace 
 
 export openai api key to use their models
->export OPENAI_API_KEY=''
+export OPENAI_API_KEY=''
+
 start the 'super model' (make sure uv is installed)
->uv run kimi
+
+uv run kimi
+
 Chose model (GPT-5 nano recomended)
->/model 
+
+/model 
 
 start prompting!
 
