@@ -33,6 +33,10 @@ from kimi_cli.tools.file.read import ReadFile
 from kimi_cli.tools.file.read_media import ReadMediaFile
 from kimi_cli.tools.file.replace import StrReplaceFile
 from kimi_cli.tools.file.write import WriteFile
+from kimi_cli.tools.function_calling.execute_calculator import ExecuteCalculator
+from kimi_cli.tools.function_calling.execute_code import ExecuteCode
+from kimi_cli.tools.function_calling.execute_pdf_extractions import ExecutePDFExtractions
+from kimi_cli.tools.function_calling.sleep_tool import SleepTool
 from kimi_cli.tools.multiagent.create import CreateSubagent
 from kimi_cli.tools.multiagent.task import Task
 from kimi_cli.tools.shell import Shell
@@ -298,6 +302,30 @@ def search_web_tool(config: Config, runtime: Runtime) -> SearchWeb:
 def fetch_url_tool(config: Config, runtime: Runtime) -> FetchURL:
     """Create a FetchURL tool instance."""
     return FetchURL(config, runtime)
+
+
+@pytest.fixture
+def execute_calculator_tool() -> ExecuteCalculator:
+    """Create an ExecuteCalculator tool instance."""
+    return ExecuteCalculator()
+
+
+@pytest.fixture
+def execute_code_tool() -> ExecuteCode:
+    """Create an ExecuteCode tool instance."""
+    return ExecuteCode()
+
+
+@pytest.fixture
+def execute_pdf_extractions_tool() -> ExecutePDFExtractions:
+    """Create an ExecutePDFExtractions tool instance."""
+    return ExecutePDFExtractions()
+
+
+@pytest.fixture
+def sleep_tool_tool() -> SleepTool:
+    """Create a SleepTool tool instance."""
+    return SleepTool()
 
 
 # misc fixtures

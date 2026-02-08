@@ -13,6 +13,10 @@ from kimi_cli.tools.file.read import ReadFile
 from kimi_cli.tools.file.read_media import ReadMediaFile
 from kimi_cli.tools.file.replace import StrReplaceFile
 from kimi_cli.tools.file.write import WriteFile
+from kimi_cli.tools.function_calling.execute_calculator import ExecuteCalculator
+from kimi_cli.tools.function_calling.execute_code import ExecuteCode
+from kimi_cli.tools.function_calling.execute_pdf_extractions import ExecutePDFExtractions
+from kimi_cli.tools.function_calling.sleep_tool import SleepTool
 from kimi_cli.tools.multiagent.task import Task
 from kimi_cli.tools.think import Think
 from kimi_cli.tools.todo import SetTodoList
@@ -424,3 +428,58 @@ def test_fetch_url_params_schema(fetch_url_tool: FetchURL):
             "type": "object",
         }
     )
+
+
+def test_execute_calculator_params_schema(execute_calculator_tool: ExecuteCalculator):
+    """Test the schema of ExecuteCalculator tool parameters."""
+    assert execute_calculator_tool.base.parameters == snapshot({"properties": {
+    "prompt": {"description": "The calculation request to execute.", "type": "string"},
+    "max_tokens": {
+        "anyOf": [{"minimum": 1, "type": "integer"}, {"type": "null"}],
+        "default": 128,
+        "description": "Optional max tokens for the underlying model request.",
+    },
+}, "required": ["prompt"], "type": "object"})
+
+
+def test_execute_code_params_schema(execute_code_tool: ExecuteCode):
+    """Test the schema of ExecuteCode tool parameters."""
+    assert execute_code_tool.base.parameters == snapshot({"properties": {
+    "prompt": {
+        "description": "The coding request to execute in a Python sandbox.",
+        "type": "string",
+    },
+    "max_tokens": {
+        "anyOf": [{"minimum": 1, "type": "integer"}, {"type": "null"}],
+        "default": None,
+        "description": "Optional max tokens for the underlying model request.",
+    },
+}, "required": ["prompt"], "type": "object"})
+
+
+def test_execute_pdf_extractions_params_schema(
+    execute_pdf_extractions_tool: ExecutePDFExtractions,
+):
+    """Test the schema of ExecutePDFExtractions tool parameters."""
+    assert execute_pdf_extractions_tool.base.parameters == snapshot({"properties": {
+    "prompt": {
+        "description": "The extraction request for PDF-focused analysis.",
+        "type": "string",
+    },
+    "max_tokens": {
+        "anyOf": [{"minimum": 1, "type": "integer"}, {"type": "null"}],
+        "default": None,
+        "description": "Optional max tokens for the underlying model request.",
+    },
+}, "required": ["prompt"], "type": "object"})
+
+
+def test_sleep_tool_params_schema(sleep_tool_tool: SleepTool):
+    """Test the schema of SleepTool tool parameters."""
+    assert sleep_tool_tool.base.parameters == snapshot({"properties": {
+    "seconds": {
+        "description": "Number of seconds to sleep before returning.",
+        "minimum": 0.0,
+        "type": "number",
+    }
+}, "required": ["seconds"], "type": "object"})

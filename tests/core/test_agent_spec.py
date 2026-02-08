@@ -34,6 +34,10 @@ def test_load_default_agent_spec():
             "kimi_cli.tools.file:StrReplaceFile",
             "kimi_cli.tools.web:SearchWeb",
             "kimi_cli.tools.web:FetchURL",
+            "kimi_cli.tools.function_calling:ExecuteCalculator",
+            "kimi_cli.tools.function_calling:ExecuteCode",
+            "kimi_cli.tools.function_calling:ExecutePDFExtractions",
+            "kimi_cli.tools.function_calling:SleepTool",
         ]
     )
     subagents = {
@@ -73,6 +77,10 @@ def test_load_default_agent_spec():
             "kimi_cli.tools.file:StrReplaceFile",
             "kimi_cli.tools.web:SearchWeb",
             "kimi_cli.tools.web:FetchURL",
+            "kimi_cli.tools.function_calling:ExecuteCalculator",
+            "kimi_cli.tools.function_calling:ExecuteCode",
+            "kimi_cli.tools.function_calling:ExecutePDFExtractions",
+            "kimi_cli.tools.function_calling:SleepTool",
         ]
     )
     sub_subagents = {
@@ -163,6 +171,10 @@ agent:
                 "kimi_cli.tools.file:StrReplaceFile",
                 "kimi_cli.tools.web:SearchWeb",
                 "kimi_cli.tools.web:FetchURL",
+                "kimi_cli.tools.function_calling:ExecuteCalculator",
+                "kimi_cli.tools.function_calling:ExecuteCode",
+                "kimi_cli.tools.function_calling:ExecutePDFExtractions",
+                "kimi_cli.tools.function_calling:SleepTool",
             ]
         )
         assert spec.exclude_tools == snapshot(

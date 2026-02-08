@@ -15,6 +15,10 @@ from kimi_cli.tools.file.read import ReadFile
 from kimi_cli.tools.file.read_media import ReadMediaFile
 from kimi_cli.tools.file.replace import StrReplaceFile
 from kimi_cli.tools.file.write import WriteFile
+from kimi_cli.tools.function_calling.execute_calculator import ExecuteCalculator
+from kimi_cli.tools.function_calling.execute_code import ExecuteCode
+from kimi_cli.tools.function_calling.execute_pdf_extractions import ExecutePDFExtractions
+from kimi_cli.tools.function_calling.sleep_tool import SleepTool
 from kimi_cli.tools.multiagent.task import Task
 from kimi_cli.tools.think import Think
 from kimi_cli.tools.todo import SetTodoList
@@ -291,3 +295,41 @@ def test_fetch_url_description(fetch_url_tool: FetchURL):
     assert fetch_url_tool.base.description == snapshot(
         "Fetch a web page from a URL and extract main text content from it.\n"
     )
+
+
+def test_execute_calculator_description(execute_calculator_tool: ExecuteCalculator):
+    """Test the description of ExecuteCalculator tool."""
+    assert execute_calculator_tool.base.description == snapshot("""\
+Run a calculator-focused model call for numerical expressions.
+
+Return value is plain text. For non-calculation prompts, the underlying calculator may return `#`.
+""")
+
+
+def test_execute_code_description(execute_code_tool: ExecuteCode):
+    """Test the description of ExecuteCode tool."""
+    assert execute_code_tool.base.description == snapshot("""\
+Generate Python code from a prompt and execute it in a sandboxed notebook runtime.
+
+Use this for short programmatic computations or data transformations that are easier to run than reason about manually.
+""")
+
+
+def test_execute_pdf_extractions_description(
+    execute_pdf_extractions_tool: ExecutePDFExtractions,
+):
+    """Test the description of ExecutePDFExtractions tool."""
+    assert execute_pdf_extractions_tool.base.description == snapshot("""\
+Run a PDF-extraction-focused model call from a text prompt.
+
+Use this when you already have extracted or referenced PDF text and need structured extraction or summarization.
+""")
+
+
+def test_sleep_tool_description(sleep_tool_tool: SleepTool):
+    """Test the description of SleepTool tool."""
+    assert sleep_tool_tool.base.description == snapshot("""\
+Sleep for a requested number of seconds and return a confirmation string.
+
+This is mainly useful for testing parallel tool-call behavior.
+""")

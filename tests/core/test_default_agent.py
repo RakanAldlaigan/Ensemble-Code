@@ -626,6 +626,103 @@ Replace specific strings within a specified file.
                     "type": "object",
                 },
             ),
+            Tool(
+                name="ExecuteCalculator",
+                description="""\
+Run a calculator-focused model call for numerical expressions.
+
+Return value is plain text. For non-calculation prompts, the underlying calculator may return `#`.
+""",
+                parameters={
+                    "properties": {
+                        "prompt": {
+                            "description": "The calculation request to execute.",
+                            "type": "string",
+                        },
+                        "max_tokens": {
+                            "anyOf": [
+                                {"minimum": 1, "type": "integer"},
+                                {"type": "null"},
+                            ],
+                            "default": 128,
+                            "description": "Optional max tokens for the underlying model request.",
+                        },
+                    },
+                    "required": ["prompt"],
+                    "type": "object",
+                },
+            ),
+            Tool(
+                name="ExecuteCode",
+                description="""\
+Generate Python code from a prompt and execute it in a sandboxed notebook runtime.
+
+Use this for short programmatic computations or data transformations that are easier to run than reason about manually.
+""",
+                parameters={
+                    "properties": {
+                        "prompt": {
+                            "description": "The coding request to execute in a Python sandbox.",
+                            "type": "string",
+                        },
+                        "max_tokens": {
+                            "anyOf": [
+                                {"minimum": 1, "type": "integer"},
+                                {"type": "null"},
+                            ],
+                            "default": None,
+                            "description": "Optional max tokens for the underlying model request.",
+                        },
+                    },
+                    "required": ["prompt"],
+                    "type": "object",
+                },
+            ),
+            Tool(
+                name="ExecutePDFExtractions",
+                description="""\
+Run a PDF-extraction-focused model call from a text prompt.
+
+Use this when you already have extracted or referenced PDF text and need structured extraction or summarization.
+""",
+                parameters={
+                    "properties": {
+                        "prompt": {
+                            "description": "The extraction request for PDF-focused analysis.",
+                            "type": "string",
+                        },
+                        "max_tokens": {
+                            "anyOf": [
+                                {"minimum": 1, "type": "integer"},
+                                {"type": "null"},
+                            ],
+                            "default": None,
+                            "description": "Optional max tokens for the underlying model request.",
+                        },
+                    },
+                    "required": ["prompt"],
+                    "type": "object",
+                },
+            ),
+            Tool(
+                name="SleepTool",
+                description="""\
+Sleep for a requested number of seconds and return a confirmation string.
+
+This is mainly useful for testing parallel tool-call behavior.
+""",
+                parameters={
+                    "properties": {
+                        "seconds": {
+                            "description": "Number of seconds to sleep before returning.",
+                            "minimum": 0.0,
+                            "type": "number",
+                        }
+                    },
+                    "required": ["seconds"],
+                    "type": "object",
+                },
+            ),
         ]
     )
 
@@ -794,6 +891,10 @@ At any time, you should be HELPFUL and POLITE, CONCISE and ACCURATE, PATIENT and
                     "StrReplaceFile",
                     "SearchWeb",
                     "FetchURL",
+                    "ExecuteCalculator",
+                    "ExecuteCode",
+                    "ExecutePDFExtractions",
+                    "SleepTool",
                 ],
             ),
         ]
