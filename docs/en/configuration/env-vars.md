@@ -91,6 +91,11 @@ The following environment variables take effect when using `openai_legacy` or `o
 | --- | --- |
 | `OPENAI_BASE_URL` | API base URL |
 | `OPENAI_API_KEY` | API key |
+| `OPENAI_MODEL_NAME` | Model identifier |
+| `OPENAI_MODEL_MAX_CONTEXT_SIZE` | Maximum context length (in tokens) |
+| `OPENAI_MODEL_CAPABILITIES` | Model capabilities, comma-separated (e.g., `thinking,image_in`) |
+
+If no model/provider is configured, setting `OPENAI_API_KEY` lets Kimi Code CLI bootstrap a temporary OpenAI setup automatically (provider: `openai_responses`, default model: `gpt-4o-mini`).
 
 ### `OPENAI_BASE_URL`
 
@@ -106,6 +111,30 @@ Overrides the provider's `api_key` field in the configuration file.
 
 ```sh
 export OPENAI_API_KEY="sk-xxx"
+```
+
+### `OPENAI_MODEL_NAME`
+
+Overrides the model's `model` field in the configuration file (the model identifier used in API calls).
+
+```sh
+export OPENAI_MODEL_NAME="gpt-4.1-mini"
+```
+
+### `OPENAI_MODEL_MAX_CONTEXT_SIZE`
+
+Overrides the model's `max_context_size` field in the configuration file. Must be a positive integer.
+
+```sh
+export OPENAI_MODEL_MAX_CONTEXT_SIZE="256000"
+```
+
+### `OPENAI_MODEL_CAPABILITIES`
+
+Overrides the model's `capabilities` field in the configuration file. Multiple capabilities are comma-separated, supported values are `thinking`, `always_thinking`, `image_in`, and `video_in`.
+
+```sh
+export OPENAI_MODEL_CAPABILITIES="thinking,image_in"
 ```
 
 ## Other environment variables

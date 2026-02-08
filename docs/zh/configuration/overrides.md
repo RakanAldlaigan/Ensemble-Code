@@ -52,6 +52,7 @@ Kimi Code CLI 的配置可以通过多种方式设置，不同来源的配置按
 - `kimi` 类型的供应商：使用 `KIMI_*` 环境变量
 - `openai_legacy` 或 `openai_responses` 类型的供应商：使用 `OPENAI_*` 环境变量
 - 其他类型的供应商：不支持环境变量覆盖
+- 如果当前没有已配置的模型/供应商，设置 `OPENAI_API_KEY` 会自动启用临时 OpenAI 配置（`openai_responses`）。
 
 完整的环境变量列表请参阅 [环境变量](./env-vars.md)。
 
@@ -59,6 +60,10 @@ Kimi Code CLI 的配置可以通过多种方式设置，不同来源的配置按
 
 ```sh
 KIMI_API_KEY="sk-xxx" KIMI_MODEL_NAME="kimi-k2-thinking-turbo" kimi
+```
+
+```sh
+OPENAI_API_KEY="sk-xxx" OPENAI_MODEL_NAME="gpt-4.1-mini" kimi
 ```
 
 ## 配置优先级示例
@@ -87,4 +92,3 @@ max_context_size = 262144
 | `KIMI_API_KEY=sk-env kimi` | 配置文件 | 环境变量 | 配置文件 |
 | `kimi --model other` | 配置文件 | 配置文件 | CLI 参数 |
 | `KIMI_MODEL_NAME=k2 kimi` | 配置文件 | 配置文件 | 环境变量 |
-

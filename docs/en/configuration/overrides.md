@@ -52,6 +52,7 @@ Environment variables take effect based on the current provider type:
 - `kimi` type providers: Use `KIMI_*` environment variables
 - `openai_legacy` or `openai_responses` type providers: Use `OPENAI_*` environment variables
 - Other provider types: Environment variable overrides not supported
+- If no model/provider is configured, setting `OPENAI_API_KEY` will bootstrap a temporary OpenAI setup (`openai_responses`).
 
 See [Environment Variables](./env-vars.md) for the complete list.
 
@@ -59,6 +60,10 @@ Example:
 
 ```sh
 KIMI_API_KEY="sk-xxx" KIMI_MODEL_NAME="kimi-k2-thinking-turbo" kimi
+```
+
+```sh
+OPENAI_API_KEY="sk-xxx" OPENAI_MODEL_NAME="gpt-4.1-mini" kimi
 ```
 
 ## Configuration priority example

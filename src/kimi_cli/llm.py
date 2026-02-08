@@ -32,6 +32,14 @@ type ModelCapability = Literal["image_in", "video_in", "thinking", "always_think
 ALL_MODEL_CAPABILITIES: set[ModelCapability] = set(get_args(ModelCapability.__value__))
 
 
+def _parse_model_capabilities(capabilities: str) -> set[ModelCapability]:
+    caps_lower = (cap.strip().lower() for cap in capabilities.split(",") if cap.strip())
+    all_capabilities = get_args(ModelCapability.__value__)
+    return set(
+        cast(ModelCapability, cap) for cap in caps_lower if cap in all_capabilities
+    )
+
+
 @dataclass(slots=True)
 class LLM:
     chat_provider: ChatProvider
@@ -76,18 +84,24 @@ def augment_provider_with_env_vars(provider: LLMProvider, model: LLMModel) -> di
                 model.max_context_size = int(max_context_size)
                 applied["KIMI_MODEL_MAX_CONTEXT_SIZE"] = max_context_size
             if capabilities := os.getenv("KIMI_MODEL_CAPABILITIES"):
-                caps_lower = (cap.strip().lower() for cap in capabilities.split(",") if cap.strip())
-                model.capabilities = set(
-                    cast(ModelCapability, cap)
-                    for cap in caps_lower
-                    if cap in get_args(ModelCapability.__value__)
-                )
+                model.capabilities = _parse_model_capabilities(capabilities)
                 applied["KIMI_MODEL_CAPABILITIES"] = capabilities
         case "openai_legacy" | "openai_responses":
             if base_url := os.getenv("OPENAI_BASE_URL"):
                 provider.base_url = base_url
+                applied["OPENAI_BASE_URL"] = base_url
             if api_key := os.getenv("OPENAI_API_KEY"):
                 provider.api_key = SecretStr(api_key)
+                applied["OPENAI_API_KEY"] = "******"
+            if model_name := os.getenv("OPENAI_MODEL_NAME"):
+                model.model = model_name
+                applied["OPENAI_MODEL_NAME"] = model_name
+            if max_context_size := os.getenv("OPENAI_MODEL_MAX_CONTEXT_SIZE"):
+                model.max_context_size = int(max_context_size)
+                applied["OPENAI_MODEL_MAX_CONTEXT_SIZE"] = max_context_size
+            if capabilities := os.getenv("OPENAI_MODEL_CAPABILITIES"):
+                model.capabilities = _parse_model_capabilities(capabilities)
+                applied["OPENAI_MODEL_CAPABILITIES"] = capabilities
         case _:
             pass
 

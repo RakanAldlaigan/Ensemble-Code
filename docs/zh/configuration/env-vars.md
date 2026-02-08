@@ -91,6 +91,11 @@ export KIMI_MODEL_MAX_TOKENS="4096"
 | --- | --- |
 | `OPENAI_BASE_URL` | API 基础 URL |
 | `OPENAI_API_KEY` | API 密钥 |
+| `OPENAI_MODEL_NAME` | 模型标识符 |
+| `OPENAI_MODEL_MAX_CONTEXT_SIZE` | 最大上下文长度（token 数） |
+| `OPENAI_MODEL_CAPABILITIES` | 模型能力，逗号分隔（如 `thinking,image_in`） |
+
+如果当前未配置任何模型/供应商，设置 `OPENAI_API_KEY` 后，Kimi Code CLI 会自动使用临时 OpenAI 配置启动（provider 为 `openai_responses`，默认模型为 `gpt-4o-mini`）。
 
 ### `OPENAI_BASE_URL`
 
@@ -106,6 +111,30 @@ export OPENAI_BASE_URL="https://api.openai.com/v1"
 
 ```sh
 export OPENAI_API_KEY="sk-xxx"
+```
+
+### `OPENAI_MODEL_NAME`
+
+覆盖配置文件中模型的 `model` 字段（API 调用时使用的模型标识符）。
+
+```sh
+export OPENAI_MODEL_NAME="gpt-4.1-mini"
+```
+
+### `OPENAI_MODEL_MAX_CONTEXT_SIZE`
+
+覆盖配置文件中模型的 `max_context_size` 字段。必须是正整数。
+
+```sh
+export OPENAI_MODEL_MAX_CONTEXT_SIZE="256000"
+```
+
+### `OPENAI_MODEL_CAPABILITIES`
+
+覆盖配置文件中模型的 `capabilities` 字段。多个能力用逗号分隔，支持的值为 `thinking`、`always_thinking`、`image_in` 和 `video_in`。
+
+```sh
+export OPENAI_MODEL_CAPABILITIES="thinking,image_in"
 ```
 
 ## 其他环境变量
@@ -140,4 +169,3 @@ export KIMI_CLI_NO_AUTO_UPDATE="1"
 ::: tip 提示
 如果你通过 Nix 或其他包管理器安装 Kimi Code CLI，通常会自动设置此环境变量，因为更新由包管理器处理。
 :::
-

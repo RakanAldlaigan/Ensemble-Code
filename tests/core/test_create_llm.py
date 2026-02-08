@@ -47,6 +47,53 @@ def test_augment_provider_with_env_vars_kimi(monkeypatch):
     )
 
 
+def test_augment_provider_with_env_vars_openai(monkeypatch):
+    provider = LLMProvider(
+        type="openai_responses",
+        base_url="https://original-openai.test/v1",
+        api_key=SecretStr("orig-openai-key"),
+    )
+    model = LLMModel(
+        provider="openai",
+        model="gpt-4.1",
+        max_context_size=128000,
+        capabilities=None,
+    )
+
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://env-openai.test/v1")
+    monkeypatch.setenv("OPENAI_API_KEY", "env-openai-key")
+    monkeypatch.setenv("OPENAI_MODEL_NAME", "gpt-4.1-mini")
+    monkeypatch.setenv("OPENAI_MODEL_MAX_CONTEXT_SIZE", "256000")
+    monkeypatch.setenv("OPENAI_MODEL_CAPABILITIES", "thinking,image_in,unknown")
+
+    applied = augment_provider_with_env_vars(provider, model)
+
+    assert applied == snapshot(
+        {
+            "OPENAI_BASE_URL": "https://env-openai.test/v1",
+            "OPENAI_API_KEY": "******",
+            "OPENAI_MODEL_NAME": "gpt-4.1-mini",
+            "OPENAI_MODEL_MAX_CONTEXT_SIZE": "256000",
+            "OPENAI_MODEL_CAPABILITIES": "thinking,image_in,unknown",
+        }
+    )
+    assert provider == snapshot(
+        LLMProvider(
+            type="openai_responses",
+            base_url="https://env-openai.test/v1",
+            api_key=SecretStr("env-openai-key"),
+        )
+    )
+    assert model == snapshot(
+        LLMModel(
+            provider="openai",
+            model="gpt-4.1-mini",
+            max_context_size=256000,
+            capabilities={"thinking", "image_in"},
+        )
+    )
+
+
 def test_create_llm_kimi_model_parameters(monkeypatch):
     provider = LLMProvider(
         type="kimi",

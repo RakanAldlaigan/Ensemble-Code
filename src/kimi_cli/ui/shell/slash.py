@@ -1,22 +1,27 @@
 from __future__ import annotations
 
+import os
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
+import aiohttp
 from prompt_toolkit.shortcuts.choice_input import ChoiceInput
+from pydantic import SecretStr
 
 from kimi_cli.auth.platforms import get_platform_name_for_provider, refresh_managed_models
 from kimi_cli.cli import Reload, SwitchToWeb
-from kimi_cli.config import load_config, save_config
+from kimi_cli.config import LLMModel, LLMProvider, load_config, save_config
 from kimi_cli.exception import ConfigError
 from kimi_cli.session import Session
 from kimi_cli.soul.kimisoul import KimiSoul
 from kimi_cli.ui.shell.console import console
+from kimi_cli.utils.aiohttp import new_client_session
 from kimi_cli.utils.changelog import CHANGELOG
 from kimi_cli.utils.datetime import format_relative_time
 from kimi_cli.utils.slashcmd import SlashCommand, SlashCommandRegistry
 
 if TYPE_CHECKING:
+    from kimi_cli.config import Config
     from kimi_cli.ui.shell import Shell
 
 type ShellSlashCmdFunc = Callable[[Shell, str], None | Awaitable[None]]
@@ -30,6 +35,8 @@ Raises:
 
 registry = SlashCommandRegistry[ShellSlashCmdFunc]()
 shell_mode_registry = SlashCommandRegistry[ShellSlashCmdFunc]()
+OPENAI_PROVIDER_KEY = "openai"
+OPENAI_MODEL_PREFIX = "openai/"
 
 
 def _ensure_kimi_soul(app: Shell) -> KimiSoul | None:
@@ -136,6 +143,105 @@ def version(app: Shell, args: str):
     console.print(f"kimi, version {VERSION}")
 
 
+def _is_openai_chat_model(model_id: str) -> bool:
+    model_id = model_id.lower()
+    return (
+        model_id.startswith("gpt-")
+        or model_id.startswith("o1")
+        or model_id.startswith("o3")
+        or model_id.startswith("o4")
+        or model_id.startswith("chatgpt")
+    )
+
+
+async def _fetch_openai_chat_models(*, base_url: str, api_key: str) -> list[str]:
+    models_url = f"{base_url.rstrip('/')}/models"
+    try:
+        async with (
+            new_client_session() as session,
+            session.get(
+                models_url,
+                headers={"Authorization": f"Bearer {api_key}"},
+                raise_for_status=True,
+            ) as resp,
+        ):
+            payload: object = await resp.json()
+    except aiohttp.ClientError:
+        raise
+
+    if not isinstance(payload, dict):
+        raise ValueError("Unexpected response from OpenAI models endpoint.")
+    raw_data = payload.get("data")
+    if not isinstance(raw_data, list):
+        raise ValueError("Unexpected response from OpenAI models endpoint.")
+
+    model_ids = sorted(
+        {
+            str(item.get("id"))
+            for item in raw_data
+            if isinstance(item, dict) and item.get("id") and _is_openai_chat_model(str(item["id"]))
+        }
+    )
+    return model_ids
+
+
+def _upsert_openai_models(
+    config: Config, *, model_ids: list[str], base_url: str, api_key: str, max_context_size: int
+) -> None:
+    config.providers[OPENAI_PROVIDER_KEY] = LLMProvider(
+        type="openai_responses",
+        base_url=base_url,
+        api_key=SecretStr(api_key),
+    )
+
+    for key, model in list(config.models.items()):
+        if model.provider == OPENAI_PROVIDER_KEY:
+            del config.models[key]
+
+    for model_id in model_ids:
+        model_key = f"{OPENAI_MODEL_PREFIX}{model_id}"
+        config.models[model_key] = LLMModel(
+            provider=OPENAI_PROVIDER_KEY,
+            model=model_id,
+            max_context_size=max_context_size,
+        )
+
+    if not config.default_model and model_ids:
+        config.default_model = f"{OPENAI_MODEL_PREFIX}{model_ids[0]}"
+
+
+async def _sync_openai_models_if_configured(config: Config) -> bool:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return False
+
+    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    max_context_size = int(os.getenv("OPENAI_MODEL_MAX_CONTEXT_SIZE", "128000"))
+
+    model_ids = await _fetch_openai_chat_models(base_url=base_url, api_key=api_key)
+    if not model_ids:
+        return False
+
+    _upsert_openai_models(
+        config,
+        model_ids=model_ids,
+        base_url=base_url,
+        api_key=api_key,
+        max_context_size=max_context_size,
+    )
+
+    config_for_save = load_config()
+    _upsert_openai_models(
+        config_for_save,
+        model_ids=model_ids,
+        base_url=base_url,
+        api_key=api_key,
+        max_context_size=max_context_size,
+    )
+    save_config(config_for_save)
+    return True
+
+
 @registry.command
 async def model(app: Shell, args: str):
     """Switch LLM model or thinking mode"""
@@ -146,16 +252,23 @@ async def model(app: Shell, args: str):
         return
     config = soul.runtime.config
 
-    await refresh_managed_models(config)
-
-    if not config.models:
-        console.print('[yellow]No models configured, send "/login" to login.[/yellow]')
-        return
-
     if not config.is_from_default_location:
         console.print(
             "[yellow]Model switching requires the default config file; "
             "restart without --config/--config-file.[/yellow]"
+        )
+        return
+
+    await refresh_managed_models(config)
+    try:
+        await _sync_openai_models_if_configured(config)
+    except (aiohttp.ClientError, ValueError, OSError, ConfigError) as exc:
+        console.print(f"[yellow]Failed to refresh OpenAI model list: {exc}[/yellow]")
+
+    if not config.models:
+        console.print(
+            "[yellow]No models configured. "
+            'Run "/login" or set OPENAI_API_KEY and retry /model.[/yellow]'
         )
         return
 

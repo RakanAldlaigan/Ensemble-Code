@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import os
 import warnings
 from collections.abc import AsyncGenerator
 from pathlib import Path
@@ -49,6 +50,28 @@ def enable_logging(debug: bool = False, *, redirect_stderr: bool = True) -> None
     )
     if redirect_stderr:
         redirect_stderr_to_logger()
+
+
+def _fallback_model_and_provider_from_env() -> tuple[LLMModel, LLMProvider]:
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if openai_api_key:
+        return (
+            LLMModel(
+                provider="env:openai",
+                model=os.getenv("OPENAI_MODEL_NAME", "gpt-4o-mini"),
+                max_context_size=int(os.getenv("OPENAI_MODEL_MAX_CONTEXT_SIZE", "128000")),
+            ),
+            LLMProvider(
+                type="openai_responses",
+                base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
+                api_key=SecretStr(openai_api_key),
+            ),
+        )
+
+    return (
+        LLMModel(provider="", model="", max_context_size=100_000),
+        LLMProvider(type="kimi", base_url="", api_key=SecretStr("")),
+    )
 
 
 class KimiCLI:
@@ -129,8 +152,7 @@ class KimiCLI:
             provider = config.providers[model.provider]
 
         if not model:
-            model = LLMModel(provider="", model="", max_context_size=100_000)
-            provider = LLMProvider(type="kimi", base_url="", api_key=SecretStr(""))
+            model, provider = _fallback_model_and_provider_from_env()
 
         # try overwrite with environment variables
         assert provider is not None
@@ -258,19 +280,27 @@ class KimiCLI:
             ),
             WelcomeInfoItem(name="Session", value=self._runtime.session.id),
         ]
-        if base_url := self._env_overrides.get("KIMI_BASE_URL"):
+        base_url_var = next(
+            (var for var in ("KIMI_BASE_URL", "OPENAI_BASE_URL") if var in self._env_overrides),
+            None,
+        )
+        if base_url_var and (base_url := self._env_overrides.get(base_url_var)):
             welcome_info.append(
                 WelcomeInfoItem(
                     name="API URL",
-                    value=f"{base_url} (from KIMI_BASE_URL)",
+                    value=f"{base_url} (from {base_url_var})",
                     level=WelcomeInfoItem.Level.WARN,
                 )
             )
-        if self._env_overrides.get("KIMI_API_KEY"):
+        api_key_var = next(
+            (var for var in ("KIMI_API_KEY", "OPENAI_API_KEY") if var in self._env_overrides),
+            None,
+        )
+        if api_key_var:
             welcome_info.append(
                 WelcomeInfoItem(
                     name="API Key",
-                    value="****** (from KIMI_API_KEY)",
+                    value=f"****** (from {api_key_var})",
                     level=WelcomeInfoItem.Level.WARN,
                 )
             )
@@ -282,35 +312,44 @@ class KimiCLI:
                     level=WelcomeInfoItem.Level.WARN,
                 )
             )
-        elif "KIMI_MODEL_NAME" in self._env_overrides:
-            welcome_info.append(
-                WelcomeInfoItem(
-                    name="Model",
-                    value=f"{self._soul.model_name} (from KIMI_MODEL_NAME)",
-                    level=WelcomeInfoItem.Level.WARN,
-                )
-            )
         else:
-            welcome_info.append(
-                WelcomeInfoItem(
-                    name="Model",
-                    value=model_display_name(self._soul.model_name),
-                    level=WelcomeInfoItem.Level.INFO,
-                )
+            model_var = next(
+                (
+                    var
+                    for var in ("KIMI_MODEL_NAME", "OPENAI_MODEL_NAME")
+                    if var in self._env_overrides
+                ),
+                None,
             )
-            if self._soul.model_name not in (
-                "kimi-for-coding",
-                "kimi-code",
-                "kimi-k2.5",
-                "kimi-k2-5",
-            ):
+            if model_var:
                 welcome_info.append(
                     WelcomeInfoItem(
-                        name="Tip",
-                        value="send /login to use our latest kimi-k2.5 model",
+                        name="Model",
+                        value=f"{self._soul.model_name} (from {model_var})",
                         level=WelcomeInfoItem.Level.WARN,
                     )
                 )
+            else:
+                welcome_info.append(
+                    WelcomeInfoItem(
+                        name="Model",
+                        value=model_display_name(self._soul.model_name),
+                        level=WelcomeInfoItem.Level.INFO,
+                    )
+                )
+                if self._soul.model_name not in (
+                    "kimi-for-coding",
+                    "kimi-code",
+                    "kimi-k2.5",
+                    "kimi-k2-5",
+                ):
+                    welcome_info.append(
+                        WelcomeInfoItem(
+                            name="Tip",
+                            value="send /login to use our latest kimi-k2.5 model",
+                            level=WelcomeInfoItem.Level.WARN,
+                        )
+                    )
         welcome_info.append(
             WelcomeInfoItem(
                 name="\nTip",
